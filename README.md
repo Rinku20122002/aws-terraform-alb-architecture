@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-This project demonstrates how to provision an AWS infrastructure using Terraform.
+This project demonstrates how to provision AWS infrastructure using Terraform.
 
 The architecture uses an Application Load Balancer (ALB) to distribute incoming HTTP traffic across EC2 instances deployed in different subnets.
 
@@ -148,47 +148,46 @@ Through this project, I practiced:
 
 ## AWS Architecture Diagram
 
-The following diagram illustrates the complete AWS infrastructure,
-including networking, security, load balancing and compute resources.
+The following diagram illustrates the complete AWS infrastructure, including networking, security, load balancing and compute resources.
 
 ```mermaid
 flowchart TB
     USER(["Internet Users"])
 
     subgraph AWS["AWS Cloud - ap-southeast-2"]
+        IGW["Internet Gateway"]
+
         subgraph VPC["VPC - 10.0.0.0/16"]
-            IGW["Internet Gateway"]
+            RT["Public Route Table<br/>0.0.0.0/0 to IGW"]
 
-            RT["Public Route Table<br/>0.0.0.0/0 → IGW"]
-
-            subgraph AZ1["Availability Zone: ap-southeast-2a"]
-                subgraph PUB1["Public Subnet 1<br/>10.0.1.0/24"]
+            subgraph AZ1["Availability Zone - ap-southeast-2a"]
+                subgraph PUB1["Public Subnet 1 - 10.0.1.0/24"]
                     ALB["Application Load Balancer"]
-                    ALBSG["ALB Security Group<br/>Inbound: HTTP 80"]
-                    EC2SG1["EC2 Security Group"]
-                    EC2_1["EC2 Instance 1<br/>Apache / Web Application"]
+                    EC2_1["EC2 Instance 1<br/>Apache Web Server"]
                 end
             end
 
-            subgraph AZ2["Availability Zone: ap-southeast-2b"]
-                subgraph PUB2["Public Subnet 2<br/>10.0.3.0/24"]
+            subgraph AZ2["Availability Zone - ap-southeast-2b"]
+                subgraph PUB2["Public Subnet 2 - 10.0.3.0/24"]
                     ALB2["ALB Network Interface"]
                 end
 
-                subgraph PRIV["Private Subnet<br/>10.0.2.0/24"]
+                subgraph PRIV["Private Subnet - 10.0.2.0/24"]
                     EC2_2["EC2 Instance 2<br/>Private Web Server"]
                 end
             end
 
-            TG["Target Group<br/>HTTP : 80<br/>Health Check: /"]
-            LISTENER["ALB Listener<br/>HTTP : 80"]
+            ALBSG["ALB Security Group<br/>Inbound HTTP 80"]
+            EC2SG["EC2 Security Group"]
+            LISTENER["ALB Listener<br/>HTTP 80"]
+            TG["Target Group<br/>HTTP 80<br/>Health Check: /"]
         end
     end
 
     USER --> IGW
     IGW --> ALB
     ALB --- ALBSG
-    ALBSG --> LISTENER
+    ALB --> LISTENER
     LISTENER --> TG
     TG --> EC2_1
     TG --> EC2_2
@@ -197,50 +196,49 @@ flowchart TB
     RT --> PUB2
     RT --> IGW
 
-    EC2SG1 -. "Security Group" .-> EC2_1
-    EC2SG1 -. "Security Group" .-> EC2_2
+    EC2SG -.-> EC2_1
+    EC2SG -.-> EC2_2
     ALB2 --- ALB
-
-    classDef public fill:#dbeafe,stroke:#2563eb,color:#1e3a8a
-    classDef private fill:#dcfce7,stroke:#16a34a,color:#14532d
-    classDef network fill:#fef3c7,stroke:#d97706,color:#78350f
-    class ALB,ALB2,EC2_1,ALBSG public
-    class EC2_2 private
-    class IGW,RT,TG,LISTENER network```
+```
 
 ## ALB Request Flow
+
+This diagram explains how incoming HTTP requests are processed by the Application Load Balancer.
 
 ```mermaid
 flowchart TB
     USER(["Internet User"])
-    ALB["Application Load Balancer<br/>HTTP : 80"]
+    ALB["Application Load Balancer<br/>HTTP Port 80"]
 
-    subgraph ALB_FLOW["ALB Request Processing"]
-        LISTENER["Listener<br/>Protocol: HTTP<br/>Port: 80"]
-        RULE["Listener Default Rule<br/>Forward traffic"]
-        TG["Target Group<br/>Protocol: HTTP<br/>Port: 80"]
-        HC["Health Check<br/>Path: /<br/>Success Code: 200"]
+    subgraph PROCESS["ALB Request Processing"]
+        LISTENER["Listener<br/>HTTP Port 80"]
+        RULE["Default Listener Rule<br/>Forward Traffic"]
+        TG["Target Group<br/>HTTP Port 80"]
+        HC["Health Check<br/>Path: /<br/>Expected Code: 200"]
     end
 
     subgraph TARGETS["Registered Targets"]
-        EC2_1["EC2 Instance 1<br/>Public Subnet<br/>Apache Web Server"]
-        EC2_2["EC2 Instance 2<br/>Private Subnet<br/>Web Server"]
+        EC2_1["EC2 Instance 1<br/>Public Subnet"]
+        EC2_2["EC2 Instance 2<br/>Private Subnet"]
     end
 
     USER -->|"HTTP Request"| ALB
     ALB --> LISTENER
     LISTENER --> RULE
     RULE --> TG
-    TG -->|"Forward request"| EC2_1
-    TG -->|"Forward request"| EC2_2
-    HC -.->|"Check health"| EC2_1
-    HC -.->|"Check health"| EC2_2
+
+    TG -->|"Forward Request"| EC2_1
+    TG -->|"Forward Request"| EC2_2
+
+    HC -.->|"Health Check"| EC2_1
+    HC -.->|"Health Check"| EC2_2
 
     EC2_1 -->|"HTTP Response"| TG
     EC2_2 -->|"HTTP Response"| TG
-    TG --> ALB
-    ALB --> USER```
 
+    TG --> ALB
+    ALB --> USER
+```
 
 **Author:** Rinku Yadav
 
