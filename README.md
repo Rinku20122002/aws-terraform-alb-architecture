@@ -151,6 +151,7 @@ Through this project, I practiced:
 The following diagram illustrates the complete AWS infrastructure,
 including networking, security, load balancing and compute resources.
 
+```mermaid
 flowchart TB
     USER(["Internet Users"])
 
@@ -205,10 +206,9 @@ flowchart TB
     classDef network fill:#fef3c7,stroke:#d97706,color:#78350f
     class ALB,ALB2,EC2_1,ALBSG public
     class EC2_2 private
-    class IGW,RT,TG,LISTENER network
+    class IGW,RT,TG,LISTENER network```
 
-
-
+```mermaid
 flowchart TB
     USER(["Internet User"])
     ALB["Application Load Balancer<br/>HTTP : 80"]
@@ -237,9 +237,9 @@ flowchart TB
     EC2_1 -->|"HTTP Response"| TG
     EC2_2 -->|"HTTP Response"| TG
     TG --> ALB
-    ALB --> USER
+    ALB --> USER```
 
-    
+
 **Author:** Rinku Yadav
 
 **GitHub:** https://github.com/Rinku20122002
