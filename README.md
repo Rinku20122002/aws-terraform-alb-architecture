@@ -208,6 +208,8 @@ flowchart TB
     class EC2_2 private
     class IGW,RT,TG,LISTENER network```
 
+## ALB Request Flow
+
 ```mermaid
 flowchart TB
     USER(["Internet User"])
