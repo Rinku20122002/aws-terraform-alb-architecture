@@ -1,0 +1,15 @@
+# Terraform working directory
+.terraform/
+
+# Terraform state files
+*.tfstate
+*.tfstate.*
+
+# Variable files containing personal or sensitive values
+terraform.tfvars
+*.auto.tfvars
+
+# Sensitive SSH private keys
+*.pem
+id_rsa
+id_ed25519
